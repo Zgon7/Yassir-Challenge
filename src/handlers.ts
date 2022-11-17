@@ -1,7 +1,6 @@
 import { FastifyRequest, FastifyReply } from "fastify";
 import { PokemonWithStats } from "models/PokemonWithStats";
 import * as https from 'https';
-import http from "https";
 
 export async function getPokemonByName(request: FastifyRequest, reply: FastifyReply) {
   var name: string = request.params['name']
@@ -94,23 +93,37 @@ export const computeResponse = async (response: unknown, reply: FastifyReply) =>
   if (pokemonTypes == undefined)
     throw pokemonTypes
 
-  response.stats.forEach(element => {
+  pokemonTypes.forEach(element => {
     var stats = []
 
     pokemonTypes.map(pok =>
-        pok.stats.map(st =>
-            st.stat.name.toUpperCase() == element.stat.name
-                ? stats.push(st.base_state)
-                : ([])
-        )
+      pok.stats.map(st =>
+        // st.stat.name.toUpperCase() == element.name
+        pok.name.toUpperCase() == element.name.toUpperCase()
+          ? stats.push(st.base_stat)
+          : ([])
+      )
     )
 
     if (stats) {
+      console.log("stats", stats);
       let avg = stats.reduce((a, b) => a + b) / stats.length
       element.averageStat = avg
     } else {
       element.averageStat = 0
     }
   });
+
+  return pokemonTypes.slice(0,3).map((pokemon) =>{
+    return {
+      name: pokemon.name,
+      height: pokemon.height,
+      base_experience: pokemon.base_experience,
+      id: pokemon.id,
+      url: pokemon.url,
+      stats: pokemon.stats,
+      averageStat: pokemon.averageStat
+    }
+  })
 
 }
