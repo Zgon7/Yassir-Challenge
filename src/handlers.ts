@@ -1,5 +1,6 @@
 import { FastifyRequest, FastifyReply } from "fastify";
 import { PokemonWithStats } from "models/PokemonWithStats";
+import * as https from 'https';
 
 export async function getPokemonByName(request: FastifyRequest, reply: FastifyReply) {
   var name: string = request.params['name']
@@ -16,12 +17,11 @@ export async function getPokemonByName(request: FastifyRequest, reply: FastifyRe
       : (urlApiPokeman = urlApiPokeman + "offset=20", urlApiPokeman = urlApiPokeman + "&limit=20")
     : (console.log('Here 2'), urlApiPokeman = urlApiPokeman + name + "?offset=20", urlApiPokeman = urlApiPokeman + "&limit=20")
 
-  const http = require('http');
-  const keepAliveAgent = new http.Agent({ keepAlive: true });
+  const keepAliveAgent = new https.Agent({ keepAlive: true });
 
   let response: any = ""
 
-  http.request({ ...reply.headers, ...({ hostname: urlApiPokeman, port: 80, }) }, (result) => { response = result })
+  https.request({ ...reply.headers, ...({ hostname: urlApiPokeman, port: 80, }) }, (result) => { response = result })
 
   if (response == null) {
     reply.code(404)
