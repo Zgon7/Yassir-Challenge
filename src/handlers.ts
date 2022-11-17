@@ -1,4 +1,4 @@
-import { FastifyRequest, FastifyReply } from "fastify";
+import { FastifyReply, FastifyRequest } from "fastify";
 
 export async function getPokemonByName(request: FastifyRequest, reply: FastifyReply) {
   var name: string = request.params['name']
@@ -11,11 +11,6 @@ export async function getPokemonByName(request: FastifyRequest, reply: FastifyRe
 
 
 
-/*  name == null
-    ? name.trim() != ''
-      ? (console.log('Here 1'),params["name"] = name, /!*urlApiPokeman = urlApiPokeman + '/', *!/urlApiPokeman = urlApiPokeman + name)
-      : (urlApiPokeman = urlApiPokeman + "offset=20", urlApiPokeman = urlApiPokeman + "&limit=20")
-    : (console.log('Here 2'), urlApiPokeman = urlApiPokeman + name + "?offset=20", urlApiPokeman = urlApiPokeman + "&limit=20")*/
 
   name ? urlApiPokeman += name + "?offset=20" + "&limit=20" : urlApiPokeman += "?offset=20&limit=20"
 
@@ -28,9 +23,6 @@ export async function getPokemonByName(request: FastifyRequest, reply: FastifyRe
         console.log("response");
         try {
           response = await fetch(urlApiPokeman).then(data => data.json());
-          // console.log("response", response);
-          // reply.send(response);
-          // return
         }
         catch (err) {
           // bad name input => removing name from url
@@ -55,14 +47,12 @@ export const computeResponse = async (response: unknown, reply: FastifyReply) =>
   else
     // get pokemon url
     results = [resp.location_area_encounters];
-  // let results = await resp.map(type => { return type.url })/*.reduce((results, typeUrl) => results.push(typeUrl));*/
   console.log("results", results);
 
   let pokemonTypes = []
 
   for (const element of results) {
 
-    // http.request({ hostname: element }, (response) => pokemonTypes.push(response))
     // 2nd url
           const response2 = await fetch('https://pokeapi.co/api/v2/pokemon/' + element.split('/')[6]).then(data => data.json());
           console.log("response");
@@ -70,15 +60,12 @@ export const computeResponse = async (response: unknown, reply: FastifyReply) =>
 
   }
 
-  if (pokemonTypes == undefined)
-    throw pokemonTypes
 
   pokemonTypes.forEach(element => {
     var stats = []
 
     pokemonTypes.map(pok =>
       pok.stats.map(st =>
-        // st.stat.name.toUpperCase() == element.name
         pok.name.toUpperCase() == element.name.toUpperCase()
           ? stats.push(st.base_stat)
           : ([])
@@ -87,8 +74,7 @@ export const computeResponse = async (response: unknown, reply: FastifyReply) =>
 
     if (stats) {
       console.log("stats", stats);
-      let avg = stats.reduce((a, b) => a + b) / stats.length
-      element.averageStat = avg
+      element.averageStat = stats.reduce((a, b) => a + b) / stats.length
     } else {
       element.averageStat = 0
     }
