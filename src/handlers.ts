@@ -1,68 +1,51 @@
 import { FastifyReply, FastifyRequest } from "fastify";
 
 export async function getPokemonByName(request: FastifyRequest, reply: FastifyReply) {
-  var name: string = request.params['name']
+  const name: string = request.params["name"];
 
-  reply.headers['Accept'] = 'application/json'
+  reply.headers["Accept"] = "application/json";
 
-  var urlApiPokeman = 'https://pokeapi.co/api/v2/pokemon/';
+  let urlApiPokemon = "https://pokeapi.co/api/v2/pokemon/";
 
+  name ? urlApiPokemon += name + "?offset=20&limit=20" : urlApiPokemon += "?offset=20&limit=20";
 
+  let response;
 
+  try {
+    response = await fetch(urlApiPokemon).then(data => data.json());
+  } catch (err) {
+    // bad name input => removing name from url
+    response = await fetch("https://pokeapi.co/api/v2/pokemon/?offset=20&limit=20").then(data => data.json());
+  }
 
-
-
-  name ? urlApiPokeman += name + "?offset=20" + "&limit=20" : urlApiPokeman += "?offset=20&limit=20"
-
-  console.log('urlApiPokeman', urlApiPokeman);
-
-
-  let response: any = ""
-
-
-        console.log("response");
-        try {
-          response = await fetch(urlApiPokeman).then(data => data.json());
-        }
-        catch (err) {
-          // bad name input => removing name from url
-          response = await fetch('https://pokeapi.co/api/v2/pokemon/?offset=20&limit=20').then(data => data.json());
-        }
-
-  const pokemonTypes = await computeResponse(response, reply)
-
-
-
-
-  reply.send(pokemonTypes)
+  const pokemonTypes = await computeResponse(response, reply);
+  reply.send(pokemonTypes);
   return reply;
 }
 
+
 export const computeResponse = async (response: unknown, reply: FastifyReply) => {
-  const resp = response as any
-  console.log("resp", resp);
+  const resp = response as any;
   let results;
   if (resp.results)
     results = resp.results.map(type => type.url);
   else
     // get pokemon url
     results = [resp.location_area_encounters];
-  console.log("results", results);
 
-  let pokemonTypes = []
+  let pokemonTypes = [];
 
   for (const element of results) {
 
     // 2nd url
-          const response2 = await fetch('https://pokeapi.co/api/v2/pokemon/' + element.split('/')[6]).then(data => data.json());
-          console.log("response");
-          pokemonTypes.push(response2)
+    const response2 = await fetch("https://pokeapi.co/api/v2/pokemon/" + element.split("/")[6]).then(data => data.json());
+    pokemonTypes.push(response2);
 
   }
 
 
   pokemonTypes.forEach(element => {
-    var stats = []
+    const stats = [];
 
     pokemonTypes.map(pok =>
       pok.stats.map(st =>
@@ -70,17 +53,15 @@ export const computeResponse = async (response: unknown, reply: FastifyReply) =>
           ? stats.push(st.base_stat)
           : ([])
       )
-    )
+    );
 
-    if (stats) {
-      console.log("stats", stats);
-      element.averageStat = stats.reduce((a, b) => a + b) / stats.length
-    } else {
-      element.averageStat = 0
-    }
+    if (stats)
+      element.averageStat = stats.reduce((a, b) => a + b) / stats.length;
+    else
+      element.averageStat = 0;
   });
 
-  return pokemonTypes.slice(0,3).map((pokemon) =>{
+  return pokemonTypes.map((pokemon) => {
     return {
       name: pokemon.name,
       height: pokemon.height,
@@ -89,7 +70,7 @@ export const computeResponse = async (response: unknown, reply: FastifyReply) =>
       url: pokemon.url,
       stats: pokemon.stats,
       averageStat: pokemon.averageStat
-    }
-  })
+    };
+  });
 
-}
+};
