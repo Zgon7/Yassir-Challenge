@@ -10,6 +10,9 @@ export async function getPokemonByName(request: FastifyRequest, reply: FastifyRe
 
   var urlApiPokeman = `https://pokeapi.co/api/v2/pokemon/`;
 
+
+
+
   var params = {}
 
   name == null
@@ -21,27 +24,12 @@ export async function getPokemonByName(request: FastifyRequest, reply: FastifyRe
 
   let response: any = ""
 
-  await https.get({ host: 'pokeapi.co',  path: '/api/v2/pokemon/', agent: keepAliveAgent},
-    (result) => {
-      var str = '';
-
-      result.on('data', (chunk) => {
-        str += chunk;
-      })
-      result.on('end', async function() {
-        console.log("str");
-        console.log(str);
-        response = str
+        response = await fetch('https://pokeapi.co/api/v2/pokemon/').then(data => data.json());
         console.log("response");
-        const pokemonTypes = await computeResponse(JSON.parse(response).results, reply)
-        // reply.send(pokemonTypes)
+        const pokemonTypes = await computeResponse(response.results, reply)
+        reply.send(pokemonTypes)
 
-        // return reply
-      });
-      result.on('socket', function (x) {
-        console.log(x);
-      })
-    }).end()
+        return reply
   // response = await superagent.get(urlApiPokeman);
 
   if (response == null) {
@@ -67,25 +55,10 @@ export const computeResponse = async (response: unknown, reply: FastifyReply) =>
 
     // http.request({ hostname: element }, (response) => pokemonTypes.push(response))
     // 2nd url
-    await https.get({ host: 'pokeapi.co',  path: '/api/v2/pokemon/' + element.split('/')[6], agent: keepAliveAgent },
-      (result) => {
-        var str = '';
-
-        result.on('data', (chunk) => {
-          str += chunk;
-        })
-        result.on('end', () => {
-          console.log("str");
-          console.log(str);
-          const response2 = str
+          const response2 = await fetch('https://pokeapi.co/api/v2/pokemon/' + element.split('/')[6]).then(data => data.json());
           console.log("response");
-          pokemonTypes.push(JSON.parse(response2))
+          pokemonTypes.push(response2)
 
-        });
-        result.on('socket', (x) => {
-          console.log(x);
-        })
-      }).end()
   }
 
   if (pokemonTypes == undefined)
@@ -111,8 +84,6 @@ export const computeResponse = async (response: unknown, reply: FastifyReply) =>
       element.averageStat = 0
     }
   });
-
-  reply.send(pokemonTypes.slice(0,3))
 
   return pokemonTypes.slice(0,3).map((pokemon) =>{
     return {
