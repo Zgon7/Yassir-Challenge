@@ -24,10 +24,19 @@ export async function getPokemonByName(request: FastifyRequest, reply: FastifyRe
 
   let response: any = ""
 
-        response = await fetch('https://pokeapi.co/api/v2/pokemon/').then(data => data.json());
+
         console.log("response");
-        const pokemonTypes = await computeResponse(response.results, reply)
-        reply.send(pokemonTypes)
+        let pokemonTypes;
+        try {
+          response = await fetch(urlApiPokeman).then(data => data.json());
+          pokemonTypes = await computeResponse(response.results, reply)
+          reply.send(pokemonTypes)
+        }
+        catch (err) {
+          response = await fetch('https://pokeapi.co/api/v2/pokemon/?offset=20&limit=20').then(data => data.json());
+          pokemonTypes = await computeResponse(response.results, reply)
+          reply.send(pokemonTypes)
+        }
 
         return reply
   // response = await superagent.get(urlApiPokeman);
