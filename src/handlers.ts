@@ -64,13 +64,32 @@ export const computeResponse = async (response: unknown, reply: FastifyReply) =>
 
   let pokemonTypes = []
 
-  results.forEach(element => {
-    const http = require('http');
+  for (const element of results) {
+    const http = require('https');
     const keepAliveAgent = new http.Agent({ keepAlive: true });
 
-    http.request({ hostname: element }, (response) => pokemonTypes.push(response))
+    // http.request({ hostname: element }, (response) => pokemonTypes.push(response))
+    // 2nd url
+    http.get({ host: 'pokeapi.co',  path: '/api/v2/pokemon/' + element.split('/')[6], agent: keepAliveAgent },
+      (result) => {
+        var str = '';
 
-  });
+        result.on('data', (chunk) => {
+          str += chunk;
+        })
+        result.on('end', async function() {
+          console.log("str");
+          console.log(str);
+          const response2 = str
+          console.log("response");
+          pokemonTypes.push(JSON.parse(response2))
+
+        });
+        result.on('socket', function (err) {
+          console.log(err);
+        })
+      }).end()
+  }
 
   if (pokemonTypes == undefined)
     throw pokemonTypes
