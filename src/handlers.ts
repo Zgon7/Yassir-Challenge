@@ -55,10 +55,7 @@ export const computeResponse = async (response: unknown, reply: FastifyReply) =>
       )
     );
 
-    if (stats)
-      element.averageStat = stats.reduce((a, b) => a + b) / stats.length;
-    else
-      element.averageStat = 0;
+    stats && stats.length > 0 ? element.averageStat = stats.reduce((a, b) => a + b) / stats.length : element.averageStat = 0;
   });
 
   return pokemonTypes.map((pokemon) => {
