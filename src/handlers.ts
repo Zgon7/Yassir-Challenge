@@ -34,12 +34,12 @@ export async function getPokemonByName(request: FastifyRequest, reply: FastifyRe
         response = str
         console.log("response");
         const pokemonTypes = await computeResponse(JSON.parse(response).results, reply)
-        reply.send(pokemonTypes)
+        // reply.send(pokemonTypes)
 
-        return reply
+        // return reply
       });
-      result.on('socket', function (err) {
-        console.log(err);
+      result.on('socket', function (x) {
+        console.log(x);
       })
     }).end()
   // response = await superagent.get(urlApiPokeman);
@@ -74,7 +74,7 @@ export const computeResponse = async (response: unknown, reply: FastifyReply) =>
         result.on('data', (chunk) => {
           str += chunk;
         })
-        result.on('end', async function() {
+        result.on('end', () => {
           console.log("str");
           console.log(str);
           const response2 = str
@@ -82,7 +82,7 @@ export const computeResponse = async (response: unknown, reply: FastifyReply) =>
           pokemonTypes.push(JSON.parse(response2))
 
         });
-        result.on('socket', function (x) {
+        result.on('socket', (x) => {
           console.log(x);
         })
       }).end()
@@ -111,6 +111,8 @@ export const computeResponse = async (response: unknown, reply: FastifyReply) =>
       element.averageStat = 0
     }
   });
+
+  reply.send(pokemonTypes.slice(0,3))
 
   return pokemonTypes.slice(0,3).map((pokemon) =>{
     return {
