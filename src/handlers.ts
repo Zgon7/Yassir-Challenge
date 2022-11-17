@@ -1,6 +1,7 @@
 import { FastifyRequest, FastifyReply } from "fastify";
 import { PokemonWithStats } from "models/PokemonWithStats";
 import * as https from 'https';
+import http from "https";
 
 export async function getPokemonByName(request: FastifyRequest, reply: FastifyReply) {
   var name: string = request.params['name']
@@ -21,17 +22,36 @@ export async function getPokemonByName(request: FastifyRequest, reply: FastifyRe
 
   let response: any = ""
 
-  https.request({ ...reply.headers, ...({ hostname: urlApiPokeman, port: 80, }) }, (result) => { response = result })
+  https.get({ host: 'pokeapi.co',  path: '/api/v2/pokemon/', agent: keepAliveAgent},
+    (result) => {
+      var str = '';
+
+      result.on('data', (chunk) => {
+        str += chunk;
+      })
+      result.on('end', async function() {
+        console.log("str");
+        console.log(str);
+        response = str
+        console.log("response");
+        const pokemonTypes = await computeResponse(JSON.parse(response).results, reply)
+        reply.send(pokemonTypes)
+
+        return reply
+      });
+      result.on('socket', function (err) {
+        console.log(err);
+      })
+    }).end()
+  // response = await superagent.get(urlApiPokeman);
 
   if (response == null) {
     reply.code(404)
   }
 
-  computeResponse(response, reply)
 
-  reply.send(response)
 
-  return reply
+  // reply.send(response)
 }
 
 export const computeResponse = async (response: unknown, reply: FastifyReply) => {
