@@ -1,6 +1,7 @@
 import { FastifyRequest, FastifyReply } from "fastify";
 import { PokemonWithStats } from "models/PokemonWithStats";
 import * as https from 'https';
+const keepAliveAgent = new https.Agent({ keepAlive: true });
 
 export async function getPokemonByName(request: FastifyRequest, reply: FastifyReply) {
   var name: string = request.params['name']
@@ -17,11 +18,10 @@ export async function getPokemonByName(request: FastifyRequest, reply: FastifyRe
       : (urlApiPokeman = urlApiPokeman + "offset=20", urlApiPokeman = urlApiPokeman + "&limit=20")
     : (console.log('Here 2'), urlApiPokeman = urlApiPokeman + name + "?offset=20", urlApiPokeman = urlApiPokeman + "&limit=20")
 
-  const keepAliveAgent = new https.Agent({ keepAlive: true });
 
   let response: any = ""
 
-  https.get({ host: 'pokeapi.co',  path: '/api/v2/pokemon/', agent: keepAliveAgent},
+  await https.get({ host: 'pokeapi.co',  path: '/api/v2/pokemon/', agent: keepAliveAgent},
     (result) => {
       var str = '';
 
@@ -64,12 +64,10 @@ export const computeResponse = async (response: unknown, reply: FastifyReply) =>
   let pokemonTypes = []
 
   for (const element of results) {
-    const http = require('https');
-    const keepAliveAgent = new http.Agent({ keepAlive: true });
 
     // http.request({ hostname: element }, (response) => pokemonTypes.push(response))
     // 2nd url
-    http.get({ host: 'pokeapi.co',  path: '/api/v2/pokemon/' + element.split('/')[6], agent: keepAliveAgent },
+    await https.get({ host: 'pokeapi.co',  path: '/api/v2/pokemon/' + element.split('/')[6], agent: keepAliveAgent },
       (result) => {
         var str = '';
 
@@ -84,8 +82,8 @@ export const computeResponse = async (response: unknown, reply: FastifyReply) =>
           pokemonTypes.push(JSON.parse(response2))
 
         });
-        result.on('socket', function (err) {
-          console.log(err);
+        result.on('socket', function (x) {
+          console.log(x);
         })
       }).end()
   }
