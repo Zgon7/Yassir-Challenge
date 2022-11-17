@@ -56,12 +56,15 @@ export async function getPokemonByName(request: FastifyRequest, reply: FastifyRe
 
 export const computeResponse = async (response: unknown, reply: FastifyReply) => {
   const resp = response as any
+  // console.log("resp", resp);
 
-  let types = resp.types.map(type => type.type).map(type => { return type.url }).reduce((types, typeUrl) => types.push(typeUrl));
+  let results = resp.map(type => type.url);
+  // let results = await resp.map(type => { return type.url })/*.reduce((results, typeUrl) => results.push(typeUrl));*/
+  console.log("results", results);
 
   let pokemonTypes = []
 
-  types.forEach(element => {
+  results.forEach(element => {
     const http = require('http');
     const keepAliveAgent = new http.Agent({ keepAlive: true });
 
