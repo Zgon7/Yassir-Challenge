@@ -1,7 +1,4 @@
 import { FastifyRequest, FastifyReply } from "fastify";
-import { PokemonWithStats } from "models/PokemonWithStats";
-import * as https from 'https';
-const keepAliveAgent = new https.Agent({ keepAlive: true });
 
 export async function getPokemonByName(request: FastifyRequest, reply: FastifyReply) {
   var name: string = request.params['name']
@@ -13,7 +10,6 @@ export async function getPokemonByName(request: FastifyRequest, reply: FastifyRe
 
 
 
-  var params = {}
 
 /*  name == null
     ? name.trim() != ''
@@ -54,10 +50,8 @@ export const computeResponse = async (response: unknown, reply: FastifyReply) =>
   const resp = response as any
   console.log("resp", resp);
   let results;
-  let url;
-  if (resp.results) {
+  if (resp.results)
     results = resp.results.map(type => type.url);
-  }
   else
     // get pokemon url
     results = [resp.location_area_encounters];
