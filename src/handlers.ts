@@ -8,53 +8,59 @@ export async function getPokemonByName(request: FastifyRequest, reply: FastifyRe
 
   reply.headers['Accept'] = 'application/json'
 
-  var urlApiPokeman = `https://pokeapi.co/api/v2/pokemon/`;
+  var urlApiPokeman = 'https://pokeapi.co/api/v2/pokemon/';
 
 
 
 
   var params = {}
 
-  name == null
+/*  name == null
     ? name.trim() != ''
-      ? (console.log('Here 1'),params["name"] = name, /*urlApiPokeman = urlApiPokeman + '/', */urlApiPokeman = urlApiPokeman + name)
+      ? (console.log('Here 1'),params["name"] = name, /!*urlApiPokeman = urlApiPokeman + '/', *!/urlApiPokeman = urlApiPokeman + name)
       : (urlApiPokeman = urlApiPokeman + "offset=20", urlApiPokeman = urlApiPokeman + "&limit=20")
-    : (console.log('Here 2'), urlApiPokeman = urlApiPokeman + name + "?offset=20", urlApiPokeman = urlApiPokeman + "&limit=20")
+    : (console.log('Here 2'), urlApiPokeman = urlApiPokeman + name + "?offset=20", urlApiPokeman = urlApiPokeman + "&limit=20")*/
+
+  name ? urlApiPokeman += name + "?offset=20" + "&limit=20" : urlApiPokeman += "?offset=20&limit=20"
+
+  console.log('urlApiPokeman', urlApiPokeman);
 
 
   let response: any = ""
 
 
         console.log("response");
-        let pokemonTypes;
         try {
           response = await fetch(urlApiPokeman).then(data => data.json());
-          pokemonTypes = await computeResponse(response.results, reply)
-          reply.send(pokemonTypes)
+          // console.log("response", response);
+          // reply.send(response);
+          // return
         }
         catch (err) {
+          // bad name input => removing name from url
           response = await fetch('https://pokeapi.co/api/v2/pokemon/?offset=20&limit=20').then(data => data.json());
-          pokemonTypes = await computeResponse(response.results, reply)
-          reply.send(pokemonTypes)
         }
 
-        return reply
-  // response = await superagent.get(urlApiPokeman);
-
-  if (response == null) {
-    reply.code(404)
-  }
+  const pokemonTypes = await computeResponse(response, reply)
 
 
 
-  // reply.send(response)
+
+  reply.send(pokemonTypes)
+  return reply;
 }
 
 export const computeResponse = async (response: unknown, reply: FastifyReply) => {
   const resp = response as any
-  // console.log("resp", resp);
-
-  let results = resp.map(type => type.url);
+  console.log("resp", resp);
+  let results;
+  let url;
+  if (resp.results) {
+    results = resp.results.map(type => type.url);
+  }
+  else
+    // get pokemon url
+    results = [resp.location_area_encounters];
   // let results = await resp.map(type => { return type.url })/*.reduce((results, typeUrl) => results.push(typeUrl));*/
   console.log("results", results);
 
